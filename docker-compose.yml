@@ -1,0 +1,261 @@
+version: "2"
+
+networks:
+  proxy-tier:
+    external:
+      name: caddy-proxy
+
+services:
+
+  radarr:
+    container_name: radarr
+    image: "linuxserver/radarr"
+    environment:
+      PGID: 1000
+      PUID: 1000
+      TZ: Europe/Berlin
+      VIRTUAL_HOST: radarr.YOURDOMAIN
+      VIRTUAL_NETWORK: caddy-proxy
+      VIRTUAL_PORT: 7878
+    volumes:
+      - FOLDERYOUWANTSTUFF/config/radarr:/config
+      - FOLDERYOUWANTSTUFF/data:/downloads
+      - FOLDERYOUWANTSTUFF/media/Movies:/movies
+      - /etc/localtime:/etc/localtime:ro
+    restart: unless-stopped
+    networks:
+      - proxy-tier
+  
+  plex:
+    container_name: plex
+    image: plexinc/pms-docker:plexpass
+    restart: unless-stopped
+    ports:
+      - 32400:32400/tcp
+      - 3005:3005/tcp
+      - 8324:8324/tcp
+      - 32469:32469/tcp
+      - 32410:32410/udp
+      - 32412:32412/udp
+      - 32413:32413/udp
+      - 32414:32414/udp
+    environment:
+      TZ: Europe/Berlin
+      VIRTUAL_HOST: plex.YOURDOMAIN
+      VIRTUAL_NETWORK: caddy-proxy
+      VIRTUAL_PORT: 32400
+    volumes:
+      - FOLDERYOUWANTSTUFF/config/plex:/config
+      - FOLDERYOUWANTSTUFF/.plextranscode:/transcode
+      - FOLDERYOUWANTSTUFF/media/TV Shows:/tv
+      - FOLDERYOUWANTSTUFF/media/Movies:/movies
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      - proxy-tier
+  
+  jackett:
+    container_name: jackett
+    image: linuxserver/jackett
+    environment:
+      PGID: 1000
+      PUID: 1000
+      TZ: Europe/Berlin
+      VIRTUAL_HOST: jackett.YOURDOMAIN
+      VIRTUAL_NETWORK: caddy-proxy
+      VIRTUAL_PORT: 9117
+    volumes:
+      - FOLDERYOUWANTSTUFF/config/jackett:/config
+      - FOLDERYOUWANTSTUFF/data/auto-add:/downloads
+      - /etc/localtime:/etc/localtime:ro
+    restart: unless-stopped
+    networks:
+      - proxy-tier
+
+  hydra:
+    container_name: hydra
+    image: linuxserver/hydra
+    environment:
+      PGID: 1000
+      PUID: 1000
+      TZ: Europe/Berlin
+      VIRTUAL_HOST: hydra.YOURDOMAIN
+      VIRTUAL_NETWORK: caddy-proxy
+      VIRTUAL_PORT: 5075
+    volumes:
+      - FOLDERYOUWANTSTUFF/config/hydra:/config
+      - /etc/localtime:/etc/localtime:ro
+    restart: unless-stopped
+    networks:
+      - proxy-tier
+
+  sonarr: 
+    container_name: sonarr
+    image: linuxserver/sonarr
+    environment:
+      PGID: 1000
+      PUID: 1000
+      TZ: Europe/Berlin
+      VIRTUAL_HOST: sonarr.YOURDOMAIN
+      VIRTUAL_NETWORK: caddy-proxy
+      VIRTUAL_PORT: 8989
+    volumes:
+      - FOLDERYOUWANTSTUFF/config/sonarr:/config
+      - FOLDERYOUWANTSTUFF/data:/downloads
+      - FOLDERYOUWANTSTUFF/media/TV Shows:/tv
+      - /etc/localtime:/etc/localtime:ro
+    restart: unless-stopped
+    networks:
+      - proxy-tier
+
+  deluge:
+    container_name: deluge
+    image: linuxserver/deluge
+    environment:
+      PGID: 1000
+      PUID: 1000
+      TZ: Europe/Berlin
+      VIRTUAL_HOST: deluge.YOURDOMAIN
+      VIRTUAL_NETWORK: caddy-proxy
+      VIRTUAL_PORT: 8112
+    ports:
+      - 6881:6881
+      - 6882:6882
+      - 6883:6883
+      - 6884:6884
+      - 6885:6885
+      - 6886:6886
+      - 6887:6887
+      - 6888:6888
+      - 6889:6889
+      - 58846:58846
+    volumes:
+      - FOLDERYOUWANTSTUFF/data:/downloads
+      - FOLDERYOUWANTSTUFF/config/deluge:/config
+      - /etc/localtime:/etc/localtime:ro
+    restart: unless-stopped
+    networks:
+      - proxy-tier
+
+  headphones:
+    container_name: headphones
+    image: linuxserver/headphones
+    environment:
+      PGID: 1000
+      PUID: 1000
+      TZ: Europe/Berlin
+      VIRTUAL_HOST: headphones.YOURDOMAIN
+      VIRTUAL_NETWORK: caddy-proxy
+      VIRTUAL_PORT: 8181
+    volumes:
+      - FOLDERYOUWANTSTUFF/config/headphones:/config
+      - FOLDERYOUWANTSTUFF/data:/downloads
+      - FOLDERYOUWANTSTUFF/media/Music:/music
+      - /etc/localtime:/etc/localtime:ro
+    restart: unless-stopped
+    networks:
+      - proxy-tier
+
+  plexpy:
+    container_name: plexpy
+    image: "linuxserver/plexpy"
+    environment:
+      PGID: 1000
+      PUID: 1000
+      TZ: Europe/Berlin
+      VIRTUAL_HOST: plexpy.YOURDOMAIN
+      VIRTUAL_NETWORK: caddy-proxy
+      VIRTUAL_PORT: 8181
+    volumes:
+      - FOLDERYOUWANTSTUFF/config/plexpy:/config
+      - FOLDERYOUWANTSTUFF/media/TV Shows:/tv
+      - /etc/localtime:/etc/localtime:ro
+    restart: unless-stopped
+    networks:
+      - proxy-tier
+
+  ombi:
+    container_name: ombi
+    image: rogueosb/ombi
+    environment:
+      PGID: 1000
+      PUID: 1000
+      TZ: Europe/Berlin
+      VIRTUAL_HOST: plexrequests.YOURDOMAIN
+      VIRTUAL_NETWORK: caddy-proxy
+      VIRTUAL_PORT: 3579
+    volumes:
+      - FOLDERYOUWANTSTUFF/config/plexrequests:/config
+      - /etc/localtime:/etc/localtime:ro
+    restart: unless-stopped
+    networks:
+      - proxy-tier
+
+  nzbget:
+    container_name: nzbget
+    image: linuxserver/nzbget
+    environment:
+      PGID: 1000
+      PUID: 1000
+      TZ: Europe/Berlin
+      VIRTUAL_HOST: nzbget.YOURDOMAIN
+      VIRTUAL_NETWORK: caddy-proxy
+      VIRTUAL_PORT: 6789
+    volumes:
+      - FOLDERYOUWANTSTUFF/data:/downloads
+      - FOLDERYOUWANTSTUFF/config/nzbget:/config
+      - /etc/localtime:/etc/localtime:ro
+    restart: unless-stopped
+    networks:
+      - proxy-tier
+
+  caddy:
+    container_name: caddy
+    image: drlogout/caddy
+    command: --conf /etc/caddy/config/Caddyfile --log stdout
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - FOLDERYOUWANTSTUFF/config/caddy:/etc/caddy
+    environment:
+      CADDYPATH: /etc/caddy/certs
+      PGID: 1000
+      PUID: 1000
+      TZ: Europe/Berlin
+    networks:
+      - proxy-tier
+    restart: unless-stopped
+
+  caddy-gen:
+    container_name: caddy-gen
+    image: jwilder/docker-gen
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - FOLDERYOUWANTSTUFF/config/caddy:/etc/caddy
+      - FOLDERYOUWANTSTUFF/config/caddy-gen:/etc/docker-gen/templates:ro
+    environment:
+      LETSENCRYPT_EMAIL: me@YOURDOMAIN
+      PGID: 1000
+      PUID: 1000
+      TZ: Europe/Berlin
+
+    command: -notify "docker restart caddy" -watch -wait 5s:30s /etc/docker-gen/templates/caddy.tmpl /etc/caddy/config/Caddyfile
+    restart: unless-stopped
+
+  music:
+    image: linuxserver/libresonic
+    container_name: music
+    volumes:
+      - FOLDERYOUWANTSTUFF/config/libresonic/config:/config
+      - FOLDERYOUWANTSTUFF/config/libresonic/playlists:/playlists
+      - FOLDERYOUWANTSTUFF/media/Music:/music
+    environment:
+      PGID: 1000
+      PUID: 1000
+      TZ: Europe/Berlin
+      VIRTUAL_HOST: music.YOURDOMAIN
+      VIRTUAL_PORT: 4040
+      VIRTUAL_NETWORK: caddy-proxy
+    restart: unless-stopped
+    networks:
+      - proxy-tier
